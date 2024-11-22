@@ -12,7 +12,8 @@ const container = document.getElementById('container');
 const containerWidth = container.clientWidth;
 const containerHeight = container.clientHeight;
 const camera = new THREE.PerspectiveCamera(45, containerWidth / containerHeight, 0.1, 1000);
-camera.position.set(0, 5, 20);
+const cameraOffset = new THREE.Vector3(0, 5, 20); // Увеличенный отступ камеры относительно машины
+camera.position.copy(cameraOffset);
 camera.lookAt(scene.position);
 
 // Настройка рендерера
@@ -20,7 +21,7 @@ const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
 renderer.setSize(containerWidth, containerHeight);
 container.appendChild(renderer.domElement);
 renderer.setPixelRatio(window.devicePixelRatio);
-renderer.setClearColor(0xa0a0a0, 1); // Светло-серый фон
+renderer.setClearColor(0xd3d3d3, 1); // Светло-серый фон (изменено на более светлый)
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
@@ -33,9 +34,15 @@ directionalLight.position.set(10, 20, 10);
 directionalLight.castShadow = true;
 scene.add(directionalLight);
 
+// Загрузка текстуры земли
+const textureLoader = new THREE.TextureLoader();
+const groundTexture = textureLoader.load('textures/ground_texture.jpg');
+groundTexture.wrapS = groundTexture.wrapT = THREE.RepeatWrapping;
+groundTexture.repeat.set(100, 100);
+
 // Добавление плоскости (земли)
 const planeGeometry = new THREE.PlaneGeometry(500, 500);
-const planeMaterial = new THREE.MeshStandardMaterial({ color: 0x808080 });
+const planeMaterial = new THREE.MeshStandardMaterial({ map: groundTexture });
 const plane = new THREE.Mesh(planeGeometry, planeMaterial);
 plane.rotation.x = -Math.PI / 2;
 plane.position.y = 0; // Опущено на уровень пола
@@ -43,7 +50,7 @@ plane.receiveShadow = true;
 scene.add(plane);
 
 // Добавление сетки
-const gridHelper = new THREE.GridHelper(500, 50, 0x000000, 0x000000);
+const gridHelper = new THREE.GridHelper(500, 50, 0x808080, 0x808080); // Изменен цвет сетки на светло-серый
 gridHelper.position.y = 0.01; // Немного выше плоскости, чтобы было видно
 scene.add(gridHelper);
 
@@ -51,6 +58,9 @@ scene.add(gridHelper);
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
 controls.dampingFactor = 0.05;
+controls.enablePan = true;
+controls.minDistance = 10;
+controls.maxDistance = 100;
 
 // Инициализация переменных
 let font;
@@ -59,11 +69,19 @@ let currentCarIndex = 0;
 const labels = [];
 const labelArrows = [];
 const attachmentPoints = []; // Массив для хранения точек привязки (красных шариков)
+const carNameLabels = []; // Массив для хранения названий машин
 
 // Пути к моделям автомобилей
-const carModels = ['./car1.glb', './car2.glb', './car3.glb'];
+const carModels = ['car1.glb', 'car2.glb', 'car3.glb'];
 
-// Обновленные данные выносок для каждой модели
+// Скорости автомобилей
+const carSpeeds = {
+	car1: 0.4, // Средняя скорость
+	car2: 0.2, // Низкая скорость (грузовик)
+	car3: 0.7, // Высокая скорость (спорткар)
+};
+
+// Данные выносок для каждой модели
 const labelData = {
 	car1: [
 		{
@@ -178,6 +196,8 @@ function loadCarModels() {
 				if (loadedModels === carModels.length) {
 					cars[currentCarIndex].visible = true;
 					addLabelsToCar(cars[currentCarIndex], `car${currentCarIndex + 1}`);
+					addCarNameLabel(cars[currentCarIndex], `car${currentCarIndex + 1}`);
+					updateCameraPosition();
 					animateScene();
 				}
 			},
@@ -198,7 +218,7 @@ function addLabelsToCar(car, carKey) {
 		const label = createLabel(data.name);
 		const labelPosition = data.labelPosition.clone(); // Используем сохраненную позицию выноски
 		label.position.copy(labelPosition);
-		scene.add(label);
+		car.add(label); // Добавляем лейбл в модель машины
 		labels.push(label);
 
 		// Создание точки привязки на машине
@@ -208,37 +228,73 @@ function addLabelsToCar(car, carKey) {
 		);
 		const attachmentPosition = data.position.clone();
 		attachmentPoint.position.copy(attachmentPosition);
-		scene.add(attachmentPoint);
+		car.add(attachmentPoint);
 		attachmentPoints.push(attachmentPoint); // Добавляем в массив для последующего удаления
 
 		// Создание линии между выноской и точкой привязки
-		const lineGeometry = new THREE.BufferGeometry().setFromPoints([
-			attachmentPoint.position,
-			label.position,
-		]);
+		const points = [];
+		points.push(new THREE.Vector3(0, 0, 0)); // Локальная позиция точки привязки
+		points.push(
+			new THREE.Vector3(
+				data.labelPosition.x - data.position.x,
+				data.labelPosition.y - data.position.y,
+				data.labelPosition.z - data.position.z
+			)
+		); // Локальная позиция выноски относительно точки привязки
+
+		const lineGeometry = new THREE.BufferGeometry().setFromPoints(points);
 		const lineMaterial = new THREE.LineBasicMaterial({ color: 0x000000 });
 		const line = new THREE.Line(lineGeometry, lineMaterial);
-		scene.add(line);
+		attachmentPoint.add(line); // Добавляем линию как дочерний объект точки привязки
 		labelArrows.push(line);
 	});
 }
 
+function addCarNameLabel(car, carKey) {
+	removeExistingCarNameLabel();
+
+	const carNames = {
+		car1: 'Base Car',
+		car2: 'Truck',
+		car3: 'Sport Car',
+	};
+
+	const carName = carNames[carKey];
+
+	const nameLabel = createCarNameLabel(carName);
+
+	// Располагаем лейбл над машиной
+	const box = new THREE.Box3().setFromObject(car);
+	const size = box.getSize(new THREE.Vector3());
+	nameLabel.position.set(0, size.y, 0);
+
+	car.add(nameLabel);
+	carNameLabels.push(nameLabel);
+}
+
 function removeExistingLabels() {
 	labels.forEach((label) => {
-		scene.remove(label);
+		cars[currentCarIndex].remove(label);
 	});
 	labels.length = 0;
 
 	labelArrows.forEach((arrow) => {
-		scene.remove(arrow);
+		arrow.parent.remove(arrow);
 	});
 	labelArrows.length = 0;
 
 	// Удаляем точки привязки (красные шарики)
 	attachmentPoints.forEach((point) => {
-		scene.remove(point);
+		cars[currentCarIndex].remove(point);
 	});
 	attachmentPoints.length = 0;
+}
+
+function removeExistingCarNameLabel() {
+	carNameLabels.forEach((label) => {
+		cars[currentCarIndex].remove(label);
+	});
+	carNameLabels.length = 0;
 }
 
 function createLabel(text) {
@@ -284,11 +340,41 @@ function createLabel(text) {
 	return labelGroup;
 }
 
+function createCarNameLabel(text) {
+	const textGeometry = new TextGeometry(text, {
+		font: font,
+		size: 1.0,
+		height: 0.1,
+		curveSegments: 12,
+		bevelEnabled: true,
+		bevelThickness: 0.02,
+		bevelSize: 0.05,
+		bevelOffset: 0,
+		bevelSegments: 5,
+	});
+
+	textGeometry.computeBoundingBox();
+	const center = textGeometry.boundingBox.getCenter(new THREE.Vector3());
+	textGeometry.translate(-center.x, -center.y, -center.z);
+
+	const textMaterial = new THREE.MeshStandardMaterial({
+		color: 0xffff00,
+		emissive: 0x444400,
+	});
+
+	const textMesh = new THREE.Mesh(textGeometry, textMaterial);
+
+	return textMesh;
+}
+
 function switchCarModel() {
 	cars[currentCarIndex].visible = false;
 	currentCarIndex = (currentCarIndex + 1) % cars.length;
 	cars[currentCarIndex].visible = true;
 	addLabelsToCar(cars[currentCarIndex], `car${currentCarIndex + 1}`);
+	addCarNameLabel(cars[currentCarIndex], `car${currentCarIndex + 1}`);
+	resetCarPosition(cars[currentCarIndex]);
+	updateCameraPosition();
 }
 
 document.getElementById('switchCarButton').addEventListener('click', switchCarModel);
@@ -304,8 +390,51 @@ function onWindowResize() {
 	renderer.setSize(containerWidth, containerHeight);
 }
 
+function updateCameraPosition() {
+	const currentCar = cars[currentCarIndex];
+	const carPosition = new THREE.Vector3();
+	currentCar.getWorldPosition(carPosition);
+	const desiredCameraPosition = carPosition.clone().add(cameraOffset);
+	camera.position.lerp(desiredCameraPosition, 0.1); // Плавное движение камеры
+	controls.target.copy(carPosition);
+}
+
+function resetCarPosition(car) {
+	car.position.z = 0;
+	textureOffset = 0;
+	groundTexture.offset.y = textureOffset;
+}
+
+let textureOffset = 0;
+const maxZ = 300; // Максимальное значение Z, после которого машина сбрасывается
+const minZ = 0; // Минимальное значение Z
+
 function animateScene() {
 	requestAnimationFrame(animateScene);
 	controls.update();
+
+	const currentCar = cars[currentCarIndex];
+	const carKey = `car${currentCarIndex + 1}`;
+	const speed = carSpeeds[carKey];
+
+	// Перемещаем машину вперед
+	currentCar.position.z += speed;
+
+	// Обновляем смещение текстуры земли для создания эффекта движения
+	textureOffset += speed * 0.05;
+	groundTexture.offset.y = textureOffset;
+
+	// Проверяем, если машина уехала за пределы, сбрасываем её позицию
+	if (currentCar.position.z > maxZ) {
+		resetCarPosition(currentCar);
+	}
+
+	// Обновляем позицию камеры
+	const carPosition = new THREE.Vector3();
+	currentCar.getWorldPosition(carPosition);
+	const desiredCameraPosition = carPosition.clone().add(cameraOffset);
+	camera.position.lerp(desiredCameraPosition, 0.1); // Плавное движение камеры
+	controls.target.copy(carPosition);
+
 	renderer.render(scene, camera);
 }
