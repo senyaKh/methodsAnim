@@ -48,7 +48,7 @@ groundTexture.wrapS = groundTexture.wrapT = THREE.RepeatWrapping;
 groundTexture.repeat.set(100, 100);
 
 // Добавление плоскости (земли)
-const planeGeometry = new THREE.PlaneGeometry(500, 500);
+const planeGeometry = new THREE.PlaneGeometry(1000, 1000);
 const planeMaterial = new THREE.MeshStandardMaterial({ map: groundTexture });
 const plane = new THREE.Mesh(planeGeometry, planeMaterial);
 plane.rotation.x = -Math.PI / 2;
@@ -57,7 +57,7 @@ plane.receiveShadow = true;
 scene.add(plane);
 
 // Добавление сетки
-const gridHelper = new THREE.GridHelper(500, 50, 0x808080, 0x808080); // Изменен цвет сетки на светло-серый
+const gridHelper = new THREE.GridHelper(1000, 500, 0x808080, 0x808080); // Изменен цвет сетки на светло-серый
 gridHelper.position.y = 0.01; // Немного выше плоскости, чтобы было видно
 scene.add(gridHelper);
 
@@ -176,7 +176,7 @@ function centerModel(model) {
 	model.position.sub(center); // Центрируем модель
 
 	// Опускаем модель на плоскость
-	const yOffset = size.y / 2;
+	const yOffset = size.y / 2 - 0.7;
 	model.position.y = yOffset;
 }
 
@@ -416,7 +416,7 @@ function resetCarPosition(car) {
 }
 
 let textureOffset = 0;
-const maxZ = 250; // Максимальное значение Z, после которого машина сбрасывается
+const maxZ = 700; // Максимальное значение Z, после которого машина сбрасывается
 const minZ = 0; // Минимальное значение Z
 
 function animateScene() {
