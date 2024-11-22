@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="ru">
+	<head>
+		<meta charset="UTF-8" />
+		<title>Визуализация Автомобиля</title>
+		<meta
+			name="viewport"
+			content="width=device-width, initial-scale=1.0" />
+		<link
+			rel="stylesheet"
+			href="./style.css" />
+		<link
+			href="https://fonts.googleapis.com/css2?family=Source+Code+Pro&family=Inter:wght@700&display=swap"
+			rel="stylesheet" />
+	</head>
+	<body>
+		<div class="container">
+			<div class="code-section">
+				<h2>Класс Автомобиля на C++</h2>
+				<p>Задача: Создать класс автомобиля с наследованием и свойствами</p>
+				<div class="code-head">
+					<div class="code-title">Код</div>
+					<div class="code-extension">.cpp</div>
+				</div>
+				<pre
+					class="code-block"
+					id="codeBlock">
+<span class="keyword">#include</span> &lt;iostream&gt;
+<span class="keyword">using</span> <span class="keyword">namespace</span> std;
+
+<span class="keyword">class</span> <span class="type">Car</span> {
+<span class="keyword">public</span>:
+    <span class="type">string</span> <span class="variable">model</span>;
+    <span class="type">int</span> <span class="variable">wheels</span>;
+    <span class="type">string</span> <span class="variable">doors</span>;
+    <span class="type">string</span> <span class="variable">headlights</span>;
+    <span class="type">string</span> <span class="variable">hood</span>;
+
+    <span class="function">Car</span>(<span class="type">string</span> m) {
+        <span class="variable">model</span> = m;
+        <span class="variable">wheels</span> = <span class="value">4</span>;
+        <span class="variable">doors</span> = <span class="string">"Standard"</span>;
+        <span class="variable">headlights</span> = <span class="string">"LED"</span>;
+        <span class="variable">hood</span> = <span class="string">"Metal"</span>;
+    }
+
+    <span class="keyword">virtual</span> <span class="keyword">void</span> <span class="function">displayInfo</span>() {
+        <span class="variable">cout</span> &lt;&lt; <span class="string">"Model: "</span> &lt;&lt; <span class="variable">model</span> &lt;&lt; <span class="string">"\n"</span>;
+    }
+};
+
+<span class="keyword">class</span> <span class="type">CarModel1</span> : <span class="keyword">public</span> <span class="type">Car</span> {
+<span class="keyword">public</span>:
+    <span class="function">CarModel1</span>(): <span class="type">Car</span>(<span class="string">"Car Model 1"</span>) {}
+};
+
+<span class="keyword">class</span> <span class="type">CarModel2</span> : <span class="keyword">public</span> <span class="type">Car</span> {
+<span class="keyword">public</span>:
+    <span class="function">CarModel2</span>(): <span class="type">Car</span>(<span class="string">"Car Model 2"</span>) {}
+};
+
+<span class="keyword">class</span> <span class="type">CarModel3</span> : <span class="keyword">public</span> <span class="type">Car</span> {
+<span class="keyword">public</span>:
+    <span class="function">CarModel3</span>(): <span class="type">Car</span>(<span class="string">"Car Model 3"</span>) {}
+};
+
+<span class="keyword">int</span> <span class="function">main</span>() {
+    <span class="type">CarModel1</span> <span class="variable">car1</span>;
+    <span class="type">CarModel2</span> <span class="variable">car2</span>;
+    <span class="type">CarModel3</span> <span class="variable">car3</span>;
+
+    <span class="variable">car1</span>.<span class="function">displayInfo</span>();
+    <span class="variable">car2</span>.<span class="function">displayInfo</span>();
+    <span class="variable">car3</span>.<span class="function">displayInfo</span>();
+
+    <span class="keyword">return</span> <span class="value">0</span>;
+}
+            </pre>
+				<div class="menu">
+					<div class="controls">
+						<div class="button-group">
+							<button id="switchCarButton">Сменить модель машины</button>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<div class="animation-section">
+				<div id="container"></div>
+			</div>
+		</div>
+		<script
+			type="module"
+			src="./main2JS.js"></script>
+	</body>
+</html>
