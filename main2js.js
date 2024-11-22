@@ -12,8 +12,15 @@ const container = document.getElementById('container');
 const containerWidth = container.clientWidth;
 const containerHeight = container.clientHeight;
 const camera = new THREE.PerspectiveCamera(45, containerWidth / containerHeight, 0.1, 1000);
-const cameraOffset = new THREE.Vector3(0, 5, 20); // Увеличенный отступ камеры относительно машины
-camera.position.copy(cameraOffset);
+
+// Объект для хранения смещений камеры для каждой модели
+const cameraOffsets = {
+	car1: new THREE.Vector3(0, 5, 20),
+	car2: new THREE.Vector3(0, 5, 25), // Более отдалённое смещение для грузовика
+	car3: new THREE.Vector3(0, 5, 20),
+};
+
+camera.position.copy(cameraOffsets.car1);
 camera.lookAt(scene.position);
 
 // Настройка рендерера
@@ -76,9 +83,9 @@ const carModels = ['car1.glb', 'car2.glb', 'car3.glb'];
 
 // Скорости автомобилей
 const carSpeeds = {
-	car1: 0.4, // Средняя скорость
+	car1: 0.3, // Средняя скорость
 	car2: 0.2, // Низкая скорость (грузовик)
-	car3: 0.7, // Высокая скорость (спорткар)
+	car3: 0.5, // Высокая скорость (спорткар)
 };
 
 // Данные выносок для каждой модели
@@ -91,61 +98,61 @@ const labelData = {
 		},
 		{
 			name: 'Doors',
-			position: new THREE.Vector3(0.8, 1.74, -0.12),
+			position: new THREE.Vector3(0.7, 1.24, -0.12),
 			labelPosition: new THREE.Vector3(2.41, 2.5, -1.3),
 		},
 		{
 			name: 'Headlights',
-			position: new THREE.Vector3(-0.63, 1.44, 2.16),
+			position: new THREE.Vector3(-0.63, 0.74, 2.16),
 			labelPosition: new THREE.Vector3(-2.67, 2.8, 2.5),
 		},
 		{
 			name: 'Wheels',
-			position: new THREE.Vector3(0.8, 1, 1.5),
-			labelPosition: new THREE.Vector3(3.39, 2.36, 1.03),
+			position: new THREE.Vector3(0.8, 0.5, 1.5),
+			labelPosition: new THREE.Vector3(3.39, 2.0, 1.03),
 		},
 	],
 	car2: [
 		{
 			name: 'Hood',
-			position: new THREE.Vector3(0.0, 4.3, -1.52),
-			labelPosition: new THREE.Vector3(-0.06, 6.47, -1.08),
+			position: new THREE.Vector3(0.0, 2.88, -1.52),
+			labelPosition: new THREE.Vector3(-0.06, 4.47, -1.08),
 		},
 		{
 			name: 'Doors',
-			position: new THREE.Vector3(1, 2.31, 1.8),
-			labelPosition: new THREE.Vector3(4.12, 4.55, 0.0),
+			position: new THREE.Vector3(1, 1.31, 0),
+			labelPosition: new THREE.Vector3(2.12, 4.55, 0.0),
 		},
 		{
 			name: 'Headlights',
-			position: new THREE.Vector3(-0.6, 2.2, 3.5),
+			position: new THREE.Vector3(-0.7, 0.7, 1.5),
 			labelPosition: new THREE.Vector3(-2.68, 3.24, 2.3),
 		},
 		{
 			name: 'Wheels',
-			position: new THREE.Vector3(1.1, 1.63, 2.89),
+			position: new THREE.Vector3(1.1, 0.53, 0.89),
 			labelPosition: new THREE.Vector3(3.54, 3.13, 2.02),
 		},
 	],
 	car3: [
 		{
 			name: 'Hood',
-			position: new THREE.Vector3(0.0, 1.59, -0.31),
-			labelPosition: new THREE.Vector3(0.0, 3.96, -0.34),
+			position: new THREE.Vector3(0.0, 1.09, -0.31),
+			labelPosition: new THREE.Vector3(0.0, 2.96, -0.34),
 		},
 		{
 			name: 'Doors',
-			position: new THREE.Vector3(0.8, 1.03, 0),
+			position: new THREE.Vector3(0.8, 0.5, 0),
 			labelPosition: new THREE.Vector3(1.4, 2.5, 0.0),
 		},
 		{
 			name: 'Headlights',
-			position: new THREE.Vector3(-0.61, 0.97, 1.82),
+			position: new THREE.Vector3(-0.61, 0.5, 1.92),
 			labelPosition: new THREE.Vector3(-3.13, 1.56, 2.4),
 		},
 		{
 			name: 'Wheels',
-			position: new THREE.Vector3(0.79, 0.62, 1.33),
+			position: new THREE.Vector3(0.85, 0.42, 1.33),
 			labelPosition: new THREE.Vector3(1.15, 1.5, 2.0),
 		},
 	],
@@ -266,7 +273,7 @@ function addCarNameLabel(car, carKey) {
 	// Располагаем лейбл над машиной
 	const box = new THREE.Box3().setFromObject(car);
 	const size = box.getSize(new THREE.Vector3());
-	nameLabel.position.set(0, size.y, 0);
+	nameLabel.position.set(0, size.y + 1, 0);
 
 	car.add(nameLabel);
 	carNameLabels.push(nameLabel);
@@ -392,9 +399,12 @@ function onWindowResize() {
 
 function updateCameraPosition() {
 	const currentCar = cars[currentCarIndex];
+	const carKey = `car${currentCarIndex + 1}`;
+	const cameraOffsetCurrent = cameraOffsets[carKey];
+
 	const carPosition = new THREE.Vector3();
 	currentCar.getWorldPosition(carPosition);
-	const desiredCameraPosition = carPosition.clone().add(cameraOffset);
+	const desiredCameraPosition = carPosition.clone().add(cameraOffsetCurrent);
 	camera.position.lerp(desiredCameraPosition, 0.1); // Плавное движение камеры
 	controls.target.copy(carPosition);
 }
@@ -406,7 +416,7 @@ function resetCarPosition(car) {
 }
 
 let textureOffset = 0;
-const maxZ = 300; // Максимальное значение Z, после которого машина сбрасывается
+const maxZ = 250; // Максимальное значение Z, после которого машина сбрасывается
 const minZ = 0; // Минимальное значение Z
 
 function animateScene() {
@@ -432,7 +442,9 @@ function animateScene() {
 	// Обновляем позицию камеры
 	const carPosition = new THREE.Vector3();
 	currentCar.getWorldPosition(carPosition);
-	const desiredCameraPosition = carPosition.clone().add(cameraOffset);
+	const carKeyCurrent = `car${currentCarIndex + 1}`;
+	const cameraOffsetCurrent = cameraOffsets[carKeyCurrent];
+	const desiredCameraPosition = carPosition.clone().add(cameraOffsetCurrent);
 	camera.position.lerp(desiredCameraPosition, 0.1); // Плавное движение камеры
 	controls.target.copy(carPosition);
 
