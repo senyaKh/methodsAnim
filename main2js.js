@@ -57,7 +57,7 @@ plane.receiveShadow = true;
 scene.add(plane);
 
 // Добавление сетки
-const gridHelper = new THREE.GridHelper(1000, 500, 0x808080, 0x808080); // Изменен цвет сетки на светло-серый
+const gridHelper = new THREE.GridHelper(2000, 500, 0x808080, 0x808080); // Изменен цвет сетки на светло-серый
 gridHelper.position.y = 0.01; // Немного выше плоскости, чтобы было видно
 scene.add(gridHelper);
 
