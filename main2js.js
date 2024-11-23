@@ -153,7 +153,7 @@ const labelData = {
 		{
 			name: 'Wheels',
 			position: new THREE.Vector3(0.85, 0.42, 1.33),
-			labelPosition: new THREE.Vector3(1.15, 1.5, 2.0),
+			labelPosition: new THREE.Vector3(3, 1.5, 2.0),
 		},
 	],
 };
