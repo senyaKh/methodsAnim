@@ -28,7 +28,7 @@ const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
 renderer.setSize(containerWidth, containerHeight);
 container.appendChild(renderer.domElement);
 renderer.setPixelRatio(window.devicePixelRatio);
-renderer.setClearColor(0xd3d3d3, 1); // Светло-серый фон (изменено на более светлый)
+renderer.setClearColor(0xd3d3d3, 1); // Светло-серый фон
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
@@ -57,7 +57,7 @@ plane.receiveShadow = true;
 scene.add(plane);
 
 // Добавление сетки
-const gridHelper = new THREE.GridHelper(2000, 500, 0x808080, 0x808080); // Изменен цвет сетки на светло-серый
+const gridHelper = new THREE.GridHelper(2000, 500, 0x808080, 0x808080); // Светло-серая сетка
 gridHelper.position.y = 0.01; // Немного выше плоскости, чтобы было видно
 scene.add(gridHelper);
 
@@ -75,8 +75,8 @@ const cars = [];
 let currentCarIndex = 0;
 const labels = [];
 const labelArrows = [];
-const attachmentPoints = []; // Массив для хранения точек привязки (красных шариков)
-const carNameLabels = []; // Массив для хранения названий машин
+const attachmentPoints = []; // Точки привязки (красные шарики)
+const carNameLabels = []; // Названия машин
 
 // Пути к моделям автомобилей
 const carModels = ['car1.glb', 'car2.glb', 'car3.glb'];
@@ -93,8 +93,8 @@ const labelData = {
 	car1: [
 		{
 			name: 'Hood',
-			position: new THREE.Vector3(-0.19, 1.35, -0.49), // Позиция точки привязки
-			labelPosition: new THREE.Vector3(-0.17, 2.97, 0.19), // Позиция выноски
+			position: new THREE.Vector3(-0.19, 1.35, -0.49),
+			labelPosition: new THREE.Vector3(-0.17, 2.97, 0.19),
 		},
 		{
 			name: 'Doors',
@@ -205,6 +205,13 @@ function loadCarModels() {
 					addLabelsToCar(cars[currentCarIndex], `car${currentCarIndex + 1}`);
 					addCarNameLabel(cars[currentCarIndex], `car${currentCarIndex + 1}`);
 					updateCameraPosition();
+
+					// Инициализируем предыдущую позицию машины
+					const initialCarPosition = new THREE.Vector3();
+					cars[currentCarIndex].getWorldPosition(initialCarPosition);
+					previousCarPosition.copy(initialCarPosition);
+					controls.target.copy(initialCarPosition);
+
 					animateScene();
 				}
 			},
@@ -374,6 +381,7 @@ function createCarNameLabel(text) {
 	return textMesh;
 }
 
+// Переключение модели машины
 function switchCarModel() {
 	cars[currentCarIndex].visible = false;
 	currentCarIndex = (currentCarIndex + 1) % cars.length;
@@ -384,7 +392,10 @@ function switchCarModel() {
 	updateCameraPosition();
 }
 
+// Добавление обработчиков кнопок
 document.getElementById('switchCarButton').addEventListener('click', switchCarModel);
+document.getElementById('stopCarButton').addEventListener('click', stopCarMovement);
+document.getElementById('startCarButton').addEventListener('click', startCarMovement);
 
 window.addEventListener('resize', onWindowResize, false);
 
@@ -404,8 +415,14 @@ function updateCameraPosition() {
 
 	const carPosition = new THREE.Vector3();
 	currentCar.getWorldPosition(carPosition);
+
+	// Вычисляем желаемую позицию камеры
 	const desiredCameraPosition = carPosition.clone().add(cameraOffsetCurrent);
-	camera.position.lerp(desiredCameraPosition, 0.1); // Плавное движение камеры
+
+	// Плавно перемещаем камеру к желаемой позиции
+	camera.position.lerp(desiredCameraPosition, 0.1);
+
+	// Обновляем controls.target
 	controls.target.copy(carPosition);
 }
 
@@ -413,12 +430,36 @@ function resetCarPosition(car) {
 	car.position.z = 0;
 	textureOffset = 0;
 	groundTexture.offset.y = textureOffset;
+
+	// Обновляем предыдущую позицию камеры
+	const initialCarPosition = new THREE.Vector3();
+	car.getWorldPosition(initialCarPosition);
+	previousCarPosition.copy(initialCarPosition);
+	controls.target.copy(initialCarPosition);
 }
 
+// Инициализация переменных для анимации
 let textureOffset = 0;
 const maxZ = 700; // Максимальное значение Z, после которого машина сбрасывается
 const minZ = 0; // Минимальное значение Z
 
+// Переменная для хранения предыдущей позиции машины
+const previousCarPosition = new THREE.Vector3();
+
+// Флаг для контроля движения машины
+let isCarMoving = true;
+
+// Функция остановки движения
+function stopCarMovement() {
+	isCarMoving = false;
+}
+
+// Функция запуска движения
+function startCarMovement() {
+	isCarMoving = true;
+}
+
+// Анимация сцены
 function animateScene() {
 	requestAnimationFrame(animateScene);
 	controls.update();
@@ -427,26 +468,32 @@ function animateScene() {
 	const carKey = `car${currentCarIndex + 1}`;
 	const speed = carSpeeds[carKey];
 
-	// Перемещаем машину вперед
-	currentCar.position.z += speed;
+	// Сохраняем предыдущую позицию машины
+	const beforeMove = currentCar.position.clone();
 
-	// Обновляем смещение текстуры земли для создания эффекта движения
-	textureOffset += speed * 0.05;
-	groundTexture.offset.y = textureOffset;
+	if (isCarMoving) {
+		// Перемещаем машину вперед
+		currentCar.position.z += speed;
+
+		// Обновляем смещение текстуры земли для создания эффекта движения
+		textureOffset += speed * 0.05;
+		groundTexture.offset.y = textureOffset;
+	}
 
 	// Проверяем, если машина уехала за пределы, сбрасываем её позицию
 	if (currentCar.position.z > maxZ) {
 		resetCarPosition(currentCar);
 	}
 
-	// Обновляем позицию камеры
-	const carPosition = new THREE.Vector3();
-	currentCar.getWorldPosition(carPosition);
-	const carKeyCurrent = `car${currentCarIndex + 1}`;
-	const cameraOffsetCurrent = cameraOffsets[carKeyCurrent];
-	const desiredCameraPosition = carPosition.clone().add(cameraOffsetCurrent);
-	camera.position.lerp(desiredCameraPosition, 0.1); // Плавное движение камеры
-	controls.target.copy(carPosition);
+	// Вычисляем смещение
+	const delta = currentCar.position.clone().sub(beforeMove);
+
+	// Применяем смещение к controls.target, чтобы камера следовала за машиной
+	controls.target.add(delta);
+
+	// Плавно перемещаем камеру к новой позиции
+	const desiredCameraPosition = currentCar.position.clone().add(cameraOffsets[carKey]);
+	camera.position.lerp(desiredCameraPosition, 0.1);
 
 	renderer.render(scene, camera);
 }
