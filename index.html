@@ -17,7 +17,10 @@
 		<div class="container">
 			<div class="code-section">
 				<h2>Класс Автомобиля на C++</h2>
-				<p>Задача: Создать класс автомобиля с наследованием и свойствами</p>
+				<p>
+					Задача: Создать класс автомобиля с наследованием, свойствами и методами движения,
+					остановки и старта
+				</p>
 				<div class="code-head">
 					<div class="code-title">Код</div>
 					<div class="code-extension">.cpp</div>
@@ -28,6 +31,7 @@
 <span class="keyword">#include</span> &lt;iostream&gt;
 <span class="keyword">using</span> <span class="keyword">namespace</span> std;
 
+<span class="comment">// Базовый класс Car</span>
 <span class="keyword">class</span> <span class="type">Car</span> {
 <span class="keyword">public</span>:
     <span class="type">string</span> <span class="variable">model</span>;
@@ -35,6 +39,7 @@
     <span class="type">string</span> <span class="variable">doors</span>;
     <span class="type">string</span> <span class="variable">headlights</span>;
     <span class="type">string</span> <span class="variable">hood</span>;
+    <span class="type">bool</span> <span class="variable">isMoving</span>;
 
     <span class="function">Car</span>(<span class="type">string</span> m) {
         <span class="variable">model</span> = m;
@@ -42,23 +47,56 @@
         <span class="variable">doors</span> = <span class="string">"Standard"</span>;
         <span class="variable">headlights</span> = <span class="string">"LED"</span>;
         <span class="variable">hood</span> = <span class="string">"Metal"</span>;
+        <span class="variable">isMoving</span> = <span class="keyword">false</span>;
     }
 
     <span class="keyword">virtual</span> <span class="keyword">void</span> <span class="function">displayInfo</span>() {
         <span class="variable">cout</span> &lt;&lt; <span class="string">"Model: "</span> &lt;&lt; <span class="variable">model</span> &lt;&lt; <span class="string">"\n"</span>;
     }
+
+    <span class="comment">// Метод для запуска движения</span>
+    <span class="keyword">void</span> <span class="function">start</span>() {
+        <span class="keyword">if</span> (!<span class="variable">isMoving</span>) {
+            <span class="variable">isMoving</span> = <span class="keyword">true</span>;
+            <span class="variable">cout</span> &lt;&lt; <span class="variable">model</span> &lt;&lt; <span class="string">" started moving.\n"</span>;
+        } <span class="keyword">else</span> {
+            <span class="variable">cout</span> &lt;&lt; <span class="variable">model</span> &lt;&lt; <span class="string">" is already moving.\n"</span>;
+        }
+    }
+
+    <span class="comment">// Метод для остановки движения</span>
+    <span class="keyword">void</span> <span class="function">stop</span>() {
+        <span class="keyword">if</span> (<span class="variable">isMoving</span>) {
+            <span class="variable">isMoving</span> = <span class="keyword">false</span>;
+            <span class="variable">cout</span> &lt;&lt; <span class="variable">model</span> &lt;&lt; <span class="string">" stopped.\n"</span>;
+        } <span class="keyword">else</span> {
+            <span class="variable">cout</span> &lt;&lt; <span class="variable">model</span> &lt;&lt; <span class="string">" is already stopped.\n"</span>;
+        }
+    }
+
+    <span class="comment">// Метод для движения вперёд</span>
+    <span class="keyword">void</span> <span class="function">move</span>() {
+        <span class="keyword">if</span> (<span class="variable">isMoving</span>) {
+            <span class="variable">cout</span> &lt;&lt; <span class="variable">model</span> &lt;&lt; <span class="string">" is moving forward.\n"</span>;
+        } <span class="keyword">else</span> {
+            <span class="variable">cout</span> &lt;&lt; <span class="variable">model</span> &lt;&lt; <span class="string">" is not moving. Start the car first.\n"</span>;
+        }
+    }
 };
 
+<span class="comment">// Модель автомобиля 1</span>
 <span class="keyword">class</span> <span class="type">CarModel1</span> : <span class="keyword">public</span> <span class="type">Car</span> {
 <span class="keyword">public</span>:
     <span class="function">CarModel1</span>(): <span class="type">Car</span>(<span class="string">"Car Model 1"</span>) {}
 };
 
+<span class="comment">// Модель автомобиля 2</span>
 <span class="keyword">class</span> <span class="type">CarModel2</span> : <span class="keyword">public</span> <span class="type">Car</span> {
 <span class="keyword">public</span>:
     <span class="function">CarModel2</span>(): <span class="type">Car</span>(<span class="string">"Car Model 2"</span>) {}
 };
 
+<span class="comment">// Модель автомобиля 3</span>
 <span class="keyword">class</span> <span class="type">CarModel3</span> : <span class="keyword">public</span> <span class="type">Car</span> {
 <span class="keyword">public</span>:
     <span class="function">CarModel3</span>(): <span class="type">Car</span>(<span class="string">"Car Model 3"</span>) {}
@@ -69,9 +107,23 @@
     <span class="type">CarModel2</span> <span class="variable">car2</span>;
     <span class="type">CarModel3</span> <span class="variable">car3</span>;
 
+    <span class="comment">// Тестирование методов для car1</span>
     <span class="variable">car1</span>.<span class="function">displayInfo</span>();
+    <span class="variable">car1</span>.<span class="function">start</span>();
+    <span class="variable">car1</span>.<span class="function">move</span>();
+    <span class="variable">car1</span>.<span class="function">stop</span>();
+
+    <span class="comment">// Тестирование методов для car2</span>
     <span class="variable">car2</span>.<span class="function">displayInfo</span>();
+    <span class="variable">car2</span>.<span class="function">start</span>();
+    <span class="variable">car2</span>.<span class="function">move</span>();
+    <span class="variable">car2</span>.<span class="function">stop</span>();
+
+    <span class="comment">// Тестирование методов для car3</span>
     <span class="variable">car3</span>.<span class="function">displayInfo</span>();
+    <span class="variable">car3</span>.<span class="function">start</span>();
+    <span class="variable">car3</span>.<span class="function">move</span>();
+    <span class="variable">car3</span>.<span class="function">stop</span>();
 
     <span class="keyword">return</span> <span class="value">0</span>;
 }
