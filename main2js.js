@@ -48,7 +48,7 @@ groundTexture.wrapS = groundTexture.wrapT = THREE.RepeatWrapping;
 groundTexture.repeat.set(100, 100);
 
 // Добавление плоскости (земли)
-const planeGeometry = new THREE.PlaneGeometry(1000, 1000);
+const planeGeometry = new THREE.PlaneGeometry(2000, 2000);
 const planeMaterial = new THREE.MeshStandardMaterial({ map: groundTexture });
 const plane = new THREE.Mesh(planeGeometry, planeMaterial);
 plane.rotation.x = -Math.PI / 2;
