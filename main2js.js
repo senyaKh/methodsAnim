@@ -4,7 +4,7 @@ import { GLTFLoader } from './jsm/loaders/GLTFLoader.js';
 import { TextGeometry } from './jsm/geometries/TextGeometry.js';
 import { OrbitControls } from './jsm/controls/OrbitControls.js';
 
-// Создаём сцену
+// Создаем сцену
 const scene = new THREE.Scene();
 
 // Настройка камеры
@@ -386,10 +386,12 @@ function switchCarModel() {
 	cars[currentCarIndex].visible = false;
 	currentCarIndex = (currentCarIndex + 1) % cars.length;
 	cars[currentCarIndex].visible = true;
+	removeExistingLabels(); // Ensure all labels are removed
+	removeExistingCarNameLabel(); // Remove car name labels
 	addLabelsToCar(cars[currentCarIndex], `car${currentCarIndex + 1}`);
 	addCarNameLabel(cars[currentCarIndex], `car${currentCarIndex + 1}`);
-	resetCarPosition(cars[currentCarIndex]);
-	updateCameraPosition();
+	resetCarPosition(cars[currentCarIndex]); // Reset position
+	updateCameraPosition(); // Update camera position for the new car
 }
 
 // Добавление обработчиков кнопок
@@ -427,21 +429,20 @@ function updateCameraPosition() {
 }
 
 function resetCarPosition(car) {
-	car.position.z = 0;
+	car.position.set(0, 0, 0); // Reset all position components
+	car.rotation.set(0, 0, 0); // Reset rotation if necessary
 	textureOffset = 0;
 	groundTexture.offset.y = textureOffset;
 
-	// Обновляем предыдущую позицию камеры
-	const initialCarPosition = new THREE.Vector3();
-	car.getWorldPosition(initialCarPosition);
-	previousCarPosition.copy(initialCarPosition);
-	controls.target.copy(initialCarPosition);
+	// Update previousCarPosition
+	previousCarPosition.copy(car.position);
+	controls.target.copy(car.position);
 }
 
 // Инициализация переменных для анимации
 let textureOffset = 0;
 const maxZ = 700; // Максимальное значение Z, после которого машина сбрасывается
-const minZ = 0; // Минимальное значение Z
+const minZ = -700; // Минимальное значение Z
 
 // Переменная для хранения предыдущей позиции машины
 const previousCarPosition = new THREE.Vector3();
@@ -468,32 +469,20 @@ function animateScene() {
 	const carKey = `car${currentCarIndex + 1}`;
 	const speed = carSpeeds[carKey];
 
-	// Сохраняем предыдущую позицию машины
-	const beforeMove = currentCar.position.clone();
-
 	if (isCarMoving) {
-		// Перемещаем машину вперед
 		currentCar.position.z += speed;
 
-		// Обновляем смещение текстуры земли для создания эффекта движения
 		textureOffset += speed * 0.05;
 		groundTexture.offset.y = textureOffset;
 	}
 
-	// Проверяем, если машина уехала за пределы, сбрасываем её позицию
 	if (currentCar.position.z > maxZ) {
 		resetCarPosition(currentCar);
 	}
 
-	// Вычисляем смещение
-	const delta = currentCar.position.clone().sub(beforeMove);
-
-	// Применяем смещение к controls.target, чтобы камера следовала за машиной
-	controls.target.add(delta);
-
-	// Плавно перемещаем камеру к новой позиции
 	const desiredCameraPosition = currentCar.position.clone().add(cameraOffsets[carKey]);
 	camera.position.lerp(desiredCameraPosition, 0.1);
+	controls.target.copy(currentCar.position);
 
 	renderer.render(scene, camera);
 }
