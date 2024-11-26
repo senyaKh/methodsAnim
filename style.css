@@ -67,6 +67,9 @@ body {
 	border-top-right-radius: 20px;
 	z-index: 2;
 }
+.comment{
+color: rgb(56, 219, 56);
+}
 
 .code-title {
 	font-weight: bold;
