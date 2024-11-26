@@ -197,16 +197,17 @@ function loadCarModels() {
 				});
 				model.visible = false;
 				scene.add(model);
+				model.carNameLabel = null;
 				cars[index] = model;
 				loadedModels++;
 
 				if (loadedModels === carModels.length) {
+					currentCarIndex = 0;
 					cars[currentCarIndex].visible = true;
 					addLabelsToCar(cars[currentCarIndex], `car${currentCarIndex + 1}`);
 					addCarNameLabel(cars[currentCarIndex], `car${currentCarIndex + 1}`);
 					updateCameraPosition();
 
-					// Инициализируем предыдущую позицию машины
 					const initialCarPosition = new THREE.Vector3();
 					cars[currentCarIndex].getWorldPosition(initialCarPosition);
 					previousCarPosition.copy(initialCarPosition);
@@ -222,7 +223,6 @@ function loadCarModels() {
 		);
 	});
 }
-
 function addLabelsToCar(car, carKey) {
 	removeExistingLabels();
 
@@ -265,7 +265,10 @@ function addLabelsToCar(car, carKey) {
 }
 
 function addCarNameLabel(car, carKey) {
-	removeExistingCarNameLabel();
+	if (car.carNameLabel) {
+		car.remove(car.carNameLabel);
+		car.carNameLabel = null;
+	}
 
 	const carNames = {
 		car1: 'Base Car',
@@ -277,15 +280,13 @@ function addCarNameLabel(car, carKey) {
 
 	const nameLabel = createCarNameLabel(carName);
 
-	// Располагаем лейбл над машиной
 	const box = new THREE.Box3().setFromObject(car);
 	const size = box.getSize(new THREE.Vector3());
 	nameLabel.position.set(0, size.y + 1, 0);
 
 	car.add(nameLabel);
-	carNameLabels.push(nameLabel);
+	car.carNameLabel = nameLabel;
 }
-
 function removeExistingLabels() {
 	labels.forEach((label) => {
 		cars[currentCarIndex].remove(label);
@@ -383,17 +384,20 @@ function createCarNameLabel(text) {
 
 // Переключение модели машины
 function switchCarModel() {
+	if (cars[currentCarIndex].carNameLabel) {
+		cars[currentCarIndex].remove(cars[currentCarIndex].carNameLabel);
+		cars[currentCarIndex].carNameLabel = null;
+	}
+
 	cars[currentCarIndex].visible = false;
 	currentCarIndex = (currentCarIndex + 1) % cars.length;
 	cars[currentCarIndex].visible = true;
-	removeExistingLabels(); // Ensure all labels are removed
-	removeExistingCarNameLabel(); // Remove car name labels
+	removeExistingLabels();
 	addLabelsToCar(cars[currentCarIndex], `car${currentCarIndex + 1}`);
 	addCarNameLabel(cars[currentCarIndex], `car${currentCarIndex + 1}`);
-	resetCarPosition(cars[currentCarIndex]); // Reset position
-	updateCameraPosition(); // Update camera position for the new car
+	resetCarPosition(cars[currentCarIndex]);
+	updateCameraPosition();
 }
-
 // Добавление обработчиков кнопок
 document.getElementById('switchCarButton').addEventListener('click', switchCarModel);
 document.getElementById('stopCarButton').addEventListener('click', stopCarMovement);
