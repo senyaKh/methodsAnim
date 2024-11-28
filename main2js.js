@@ -163,10 +163,7 @@ const fontLoader = new FontLoader();
 fontLoader.load('./fonts/Roboto_Bold.json', function (loadedFont) {
 	font = loadedFont;
 	loadCarModels();
-
 });
-
-
 
 // Загрузка моделей автомобилей
 const gltfLoader = new GLTFLoader();
@@ -207,17 +204,17 @@ function loadCarModels() {
 				if (loadedModels === carModels.length) {
 					currentCarIndex = 0;
 					cars[currentCarIndex].visible = true;
-				
+
 					addLabelsToCar(cars[currentCarIndex], `car${currentCarIndex + 1}`);
 					addCarNameLabel(cars[currentCarIndex], `car${currentCarIndex + 1}`);
 					updateCameraPosition();
-				
+
 					// Создаем таблицу
 					carInfoTable = create3DTable(`car${currentCarIndex + 1}`);
 					scene.add(carInfoTable);
-				
+
 					animateScene();
-				}				
+				}
 			},
 			undefined,
 			function (error) {
@@ -359,139 +356,135 @@ function createLabel(text) {
 }
 
 function updateFixedTablePosition(table) {
-    // Задаем положение таблицы в локальных координатах камеры
-    const localPosition = new THREE.Vector3(3.1, 2.6, -10); // Положение относительно камеры (x, y, z)
+	// Задаем положение таблицы в локальных координатах камеры
+	const localPosition = new THREE.Vector3(3.1, 2.6, -10); // Положение относительно камеры (x, y, z)
 
-    // Преобразуем локальные координаты в мировые
-    const worldPosition = localPosition.applyMatrix4(camera.matrixWorld);
+	// Преобразуем локальные координаты в мировые
+	const worldPosition = localPosition.applyMatrix4(camera.matrixWorld);
 
-    // Устанавливаем таблицу в вычисленное положение
-    table.position.copy(worldPosition);
+	// Устанавливаем таблицу в вычисленное положение
+	table.position.copy(worldPosition);
 
-    // Таблица всегда смотрит на камеру
-    table.lookAt(camera.position);
+	// Таблица всегда смотрит на камеру
+	table.lookAt(camera.position);
 }
-
 
 function create3DTable(carKey) {
-    const tableData = {
-        car1: {
-            name: 'Base Car',
-            speed: '',
-            features: ['']
-        },
-        car2: {
-            name: 'Truck',
-            speed: 'low speed (0.2)',
-            features: ['Вместительность']
-        },
-        car3: {
-            name: 'Sport Car',
-            speed: 'high speed (0.5)',
-            features: ['Наличие закиси азота,\n Twin Turbo']
-        }
-    };
+	const tableData = {
+		car1: {
+			name: 'Base Car',
+			speed: '',
+			features: [''],
+		},
+		car2: {
+			name: 'Truck',
+			speed: 'low speed (0.2)',
+			features: ['Вместительность'],
+		},
+		car3: {
+			name: 'Sport Car',
+			speed: 'high speed (0.5)',
+			features: ['Наличие закиси азота,\n Twin Turbo'],
+		},
+	};
 
-    const data = tableData[carKey];
+	const data = tableData[carKey];
 
-    const group = new THREE.Group();
+	const group = new THREE.Group();
 
-    // Создаем фон для таблицы
-    const backgroundGeometry = new THREE.PlaneGeometry(4, 2);
-    const backgroundMaterial = new THREE.MeshBasicMaterial({
-        color: 0x000000,
-        opacity: 0,
-        transparent: true
-    });
-    const backgroundMesh = new THREE.Mesh(backgroundGeometry, backgroundMaterial);
-    group.add(backgroundMesh);
+	// Создаем фон для таблицы
+	const backgroundGeometry = new THREE.PlaneGeometry(4, 2);
+	const backgroundMaterial = new THREE.MeshBasicMaterial({
+		color: 0x000000,
+		opacity: 0,
+		transparent: true,
+	});
+	const backgroundMesh = new THREE.Mesh(backgroundGeometry, backgroundMaterial);
+	group.add(backgroundMesh);
 
-    // Создаем текст для названия машины
-    const titleGeometry = new TextGeometry(data.name, {
-        font: font,
-        size: 0.25,
-        height: 0.03
-    });
-    const titleMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
-    const titleMesh = new THREE.Mesh(titleGeometry, titleMaterial);
-    titleGeometry.center();
-    titleMesh.position.set(0, 0.5, 0.1);
-    group.add(titleMesh);
+	// Создаем текст для названия машины
+	const titleGeometry = new TextGeometry(data.name, {
+		font: font,
+		size: 0.25,
+		height: 0.03,
+	});
+	const titleMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
+	const titleMesh = new THREE.Mesh(titleGeometry, titleMaterial);
+	titleGeometry.center();
+	titleMesh.position.set(0, 0.5, 0.1);
+	group.add(titleMesh);
 
-    // Добавляем текст для скорости и особенностей
-    const detailsText = [`${data.speed}`, ...data.features].join('\n');
-    const detailsGeometry = new TextGeometry(detailsText, {
-        font: font,
-        size: 0.2,
-        height: 0.05
-    });
-    const detailsMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
-    const detailsMesh = new THREE.Mesh(detailsGeometry, detailsMaterial);
-    detailsGeometry.center();
-    detailsMesh.position.set(0, -0.25, 0.1);
-    group.add(detailsMesh);
+	// Добавляем текст для скорости и особенностей
+	const detailsText = [`${data.speed}`, ...data.features].join('\n');
+	const detailsGeometry = new TextGeometry(detailsText, {
+		font: font,
+		size: 0.2,
+		height: 0.05,
+	});
+	const detailsMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
+	const detailsMesh = new THREE.Mesh(detailsGeometry, detailsMaterial);
+	detailsGeometry.center();
+	detailsMesh.position.set(0, -0.25, 0.1);
+	group.add(detailsMesh);
 
-    // Позиционируем таблицу в правом верхнем углу
-    group.position.set(1, 20, -10);
+	// Позиционируем таблицу в правом верхнем углу
+	group.position.set(1, 20, -10);
 
-    return group;
+	return group;
 }
 function updateCarInfoInTable(carKey) {
-    const tableData = {
-        car1: {
-            name: 'Base Car',
-            speed: 'Вместительность',
-            features: ['Металлический капот', 'Стандартные двери', 'LED фары']
-        },
-        car2: {
-            name: 'Truck',
-            speed: 'Низкая (0.2)',
-            features: ['Усиленный капот', 'Большие двери', 'Галогеновые фары']
-        },
-        car3: {
-            name: 'Sport Car',
-            speed: 'Высокая (0.5)',
-            features: ['Карбоновый капот', 'Спортивные двери', 'LED фары']
-        }
-    };
+	const tableData = {
+		car1: {
+			name: 'Base Car',
+			speed: 'Вместительность',
+			features: ['Металлический капот', 'Стандартные двери', 'LED фары'],
+		},
+		car2: {
+			name: 'Truck',
+			speed: 'Низкая (0.2)',
+			features: ['Усиленный капот', 'Большие двери', 'Галогеновые фары'],
+		},
+		car3: {
+			name: 'Sport Car',
+			speed: 'Высокая (0.5)',
+			features: ['Карбоновый капот', 'Спортивные двери', 'LED фары'],
+		},
+	};
 
-    const data = tableData[carKey];
+	const data = tableData[carKey];
 
-    // Удаляем все дочерние элементы из таблицы
-    while (carInfoTable.children.length > 0) {
-        const child = carInfoTable.children[0];
-        carInfoTable.remove(child);
-        if (child.geometry) child.geometry.dispose(); // Освобождаем память
-        if (child.material) child.material.dispose(); // Освобождаем память
-    }
+	// Удаляем все дочерние элементы из таблицы
+	while (carInfoTable.children.length > 0) {
+		const child = carInfoTable.children[0];
+		carInfoTable.remove(child);
+		if (child.geometry) child.geometry.dispose(); // Освобождаем память
+		if (child.material) child.material.dispose(); // Освобождаем память
+	}
 
-    // Добавляем новое содержимое
-    const titleGeometry = new TextGeometry(data.name, {
-        font: font,
-        size: 0.3,
-        height: 0.05,
-    });
-    const titleMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
-    const titleMesh = new THREE.Mesh(titleGeometry, titleMaterial);
-    titleGeometry.center();
-    titleMesh.position.set(0, 1, 0.1);
-    carInfoTable.add(titleMesh);
+	// Добавляем новое содержимое
+	const titleGeometry = new TextGeometry(data.name, {
+		font: font,
+		size: 0.3,
+		height: 0.05,
+	});
+	const titleMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
+	const titleMesh = new THREE.Mesh(titleGeometry, titleMaterial);
+	titleGeometry.center();
+	titleMesh.position.set(0, 1, 0.1);
+	carInfoTable.add(titleMesh);
 
-    const detailsText = [`Скорость: ${data.speed}`, ...data.features].join('\n');
-    const detailsGeometry = new TextGeometry(detailsText, {
-        font: font,
-        size: 0.2,
-        height: 0.05,
-    });
-    const detailsMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
-    const detailsMesh = new THREE.Mesh(detailsGeometry, detailsMaterial);
-    detailsGeometry.center();
-    detailsMesh.position.set(0, -0.5, 0.1);
-    carInfoTable.add(detailsMesh);
+	const detailsText = [`Скорость: ${data.speed}`, ...data.features].join('\n');
+	const detailsGeometry = new TextGeometry(detailsText, {
+		font: font,
+		size: 0.2,
+		height: 0.05,
+	});
+	const detailsMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
+	const detailsMesh = new THREE.Mesh(detailsGeometry, detailsMaterial);
+	detailsGeometry.center();
+	detailsMesh.position.set(0, -0.5, 0.1);
+	carInfoTable.add(detailsMesh);
 }
-
-
-
 
 function createCarNameLabel(text) {
 	const textGeometry = new TextGeometry(text, {
@@ -522,20 +515,22 @@ function createCarNameLabel(text) {
 
 // Переключение модели машины
 function switchCarModel() {
-    cars[currentCarIndex].visible = false;
-    currentCarIndex = (currentCarIndex + 1) % cars.length;
-    cars[currentCarIndex].visible = true;
+	cars[currentCarIndex].visible = false;
+	currentCarIndex = (currentCarIndex + 1) % cars.length;
+	cars[currentCarIndex].visible = true;
 
-    removeExistingLabels();
-    addLabelsToCar(cars[currentCarIndex], `car${currentCarIndex + 1}`);
-    addCarNameLabel(cars[currentCarIndex], `car${currentCarIndex + 1}`);
-    resetCarPosition(cars[currentCarIndex]);
-    updateCameraPosition();
+	removeExistingLabels();
+	addLabelsToCar(cars[currentCarIndex], `car${currentCarIndex + 1}`);
+	addCarNameLabel(cars[currentCarIndex], `car${currentCarIndex + 1}`);
+	resetCarPosition(cars[currentCarIndex]);
+	updateCameraPosition();
 	updateCarInfoInTable(`car${currentCarIndex + 1}`);
 }
 
 // Добавление обработчиков кнопок
-document.getElementById('switchCarButton').addEventListener('click', switchCarModel);
+document.getElementById('carSelect').addEventListener('change', function () {
+	switchCarModel();
+});
 document.getElementById('stopCarButton').addEventListener('click', stopCarMovement);
 document.getElementById('startCarButton').addEventListener('click', startCarMovement);
 
@@ -604,34 +599,34 @@ let carInfoTable = null; // Глобальная переменная для т�
 
 // Анимация сцены
 function animateScene() {
-    requestAnimationFrame(animateScene);
-    controls.update();
+	requestAnimationFrame(animateScene);
+	controls.update();
 
-    const currentCar = cars[currentCarIndex];
-    const carKey = `car${currentCarIndex + 1}`;
-    const speed = carSpeeds[carKey];
+	const currentCar = cars[currentCarIndex];
+	const carKey = `car${currentCarIndex + 1}`;
+	const speed = carSpeeds[carKey];
 
-    if (isCarMoving) {
-        currentCar.position.z += speed;
+	if (isCarMoving) {
+		currentCar.position.z += speed;
 
-        textureOffset += speed * 0.05;
-        groundTexture.offset.y = textureOffset;
-    }
+		textureOffset += speed * 0.05;
+		groundTexture.offset.y = textureOffset;
+	}
 
-    if (currentCar.position.z > maxZ) {
-        resetCarPosition(currentCar);
-    }
+	if (currentCar.position.z > maxZ) {
+		resetCarPosition(currentCar);
+	}
 
-    // Плавное обновление камеры
-    const desiredCameraPosition = currentCar.position.clone().add(cameraOffsets[carKey]);
-    camera.position.lerp(desiredCameraPosition, 0.1);
-    controls.target.copy(currentCar.position);
+	// Плавное обновление камеры
+	const desiredCameraPosition = currentCar.position.clone().add(cameraOffsets[carKey]);
+	camera.position.lerp(desiredCameraPosition, 0.1);
+	controls.target.copy(currentCar.position);
 
-    // Обновляем позицию таблицы
-    if (carInfoTable) {
-        updateFixedTablePosition(carInfoTable);
-    }
+	// Обновляем позицию таблицы
+	if (carInfoTable) {
+		updateFixedTablePosition(carInfoTable);
+	}
 
-    // Рендер сцены
-    renderer.render(scene, camera);
+	// Рендер сцены
+	renderer.render(scene, camera);
 }
