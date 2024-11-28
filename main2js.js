@@ -384,22 +384,32 @@ function createCarNameLabel(text) {
 
 // Переключение модели машины
 function switchCarModel() {
-	if (cars[currentCarIndex].carNameLabel) {
-		cars[currentCarIndex].remove(cars[currentCarIndex].carNameLabel);
-		cars[currentCarIndex].carNameLabel = null;
+	// Hide all cars
+	for (let i = 0; i < cars.length; i++) {
+		cars[i].visible = false;
 	}
 
-	cars[currentCarIndex].visible = false;
-	currentCarIndex = (currentCarIndex + 1) % cars.length;
+	// Get the new current car index from the select element
+	currentCarIndex = parseInt(document.getElementById('carSelect').value);
+
+	// Show the selected car
 	cars[currentCarIndex].visible = true;
+
+	// Remove existing labels and attachments from the previous car
 	removeExistingLabels();
+
+	// Add labels and attachments to the new car
 	addLabelsToCar(cars[currentCarIndex], `car${currentCarIndex + 1}`);
 	addCarNameLabel(cars[currentCarIndex], `car${currentCarIndex + 1}`);
+
+	// Reset car position and update camera
 	resetCarPosition(cars[currentCarIndex]);
 	updateCameraPosition();
 }
 // Добавление обработчиков кнопок
-document.getElementById('switchCarButton').addEventListener('click', switchCarModel);
+document.getElementById('carSelect').addEventListener('change', function () {
+	switchCarModel();
+});
 document.getElementById('stopCarButton').addEventListener('click', stopCarMovement);
 document.getElementById('startCarButton').addEventListener('click', startCarMovement);
 
