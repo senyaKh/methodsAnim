@@ -67,8 +67,8 @@ body {
 	border-top-right-radius: 20px;
 	z-index: 2;
 }
-.comment{
-color: rgb(56, 219, 56);
+.comment {
+	color: rgb(56, 219, 56);
 }
 
 .code-title {
@@ -284,4 +284,21 @@ input::placeholder {
 
 .animation-section {
 	padding: 0 !important;
+}
+
+#carSelect {
+	font-family: 'Inter', sans-serif;
+	padding: 8px 16px;
+	border-radius: 20px;
+	border: 2.5px solid #333435;
+	background: transparent;
+	color: #333435;
+	font-size: 15px;
+	cursor: pointer;
+	transition: all 0.2s ease-in;
+}
+
+#carSelect:hover {
+	background-color: #333435;
+	color: #f0f0f0;
 }
